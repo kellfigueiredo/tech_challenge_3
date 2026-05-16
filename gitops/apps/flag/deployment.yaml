@@ -1,29 +1,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flag
-  namespace: togglemaster
+  name: flag-service
+  namespace: flag
   labels:
-    app.kubernetes.io/name: flag
+    app: flag-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app.kubernetes.io/name: flag
+      app: flag-service
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: flag
+        app: flag-service
     spec:
       containers:
-        - name: flag
+        - name: flag-service
+          # Troque pela sua imagem no registry (ex.: ECR)
           image: 633853515534.dkr.ecr.us-east-1.amazonaws.com/togglemaster-flag:v1.0.0-01422d2f975d4eaa658d51ff3ae93d5ca6acd00a
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8002
+
+          envFrom:
+            - configMapRef:
+                name: flag-config
+            - secretRef:
+                name: flag-secret
+
           resources:
             requests:
-              cpu: "50m"
-              memory: "64Mi"
+              cpu: "100m"
+              memory: "128Mi"
             limits:
-              cpu: "250m"
+              cpu: "500m"
               memory: "256Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 15
+            periodSeconds: 20

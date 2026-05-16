@@ -17,18 +17,15 @@ spec:
     spec:
       containers:
         - name: targeting-service
-          image: 633853515534.dkr.ecr.us-east-1.amazonaws.com/togglemaster-targeting:v1.0.0-ffc41522b381e7b9d949fc445482f48122af930d
+          image: 633853515534.dkr.ecr.us-east-1.amazonaws.com/togglemaster-targeting:v1.0.0-95d7fd1415d5e03f806db420a7c6f5744b09fa66
           imagePullPolicy: IfNotPresent
-
           ports:
             - containerPort: 8003
-
           envFrom:
             - configMapRef:
                 name: targeting-config
             - secretRef:
                 name: targeting-secret
-
           resources:
             requests:
               cpu: "100m"
@@ -36,14 +33,12 @@ spec:
             limits:
               cpu: "500m"
               memory: "256Mi"
-
           readinessProbe:
             httpGet:
               path: /health
               port: 8003
             initialDelaySeconds: 5
             periodSeconds: 10
-
           livenessProbe:
             httpGet:
               path: /health

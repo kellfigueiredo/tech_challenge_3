@@ -105,8 +105,10 @@ def create_rule():
         log.error(f"Erro ao criar regra: {e}")
         return jsonify({"error": "Erro interno do servidor", "details": str(e)}), 500
     finally:
-        if cur: cur.close()
-        if conn: pool.putconn(conn)
+        if cur: 
+            cur.close()
+        if conn: 
+            pool.putconn(conn)
 
 @app.route('/rules/<string:flag_name>', methods=['GET'])
 @require_auth
@@ -126,8 +128,10 @@ def get_rule(flag_name):
         log.error(f"Erro ao buscar regra '{flag_name}': {e}")
         return jsonify({"error": "Erro interno do servidor", "details": str(e)}), 500
     finally:
-        if cur: cur.close()
-        if conn: pool.putconn(conn)
+        if cur: 
+            cur.close()
+        if conn: 
+            pool.putconn(conn)
 
 @app.route('/rules/<string:flag_name>', methods=['PUT'])
 @require_auth
@@ -174,8 +178,10 @@ def update_rule(flag_name):
         log.error(f"Erro ao atualizar regra '{flag_name}': {e}")
         return jsonify({"error": "Erro interno do servidor", "details": str(e)}), 500
     finally:
-        if cur: cur.close()
-        if conn: pool.putconn(conn)
+        if cur: 
+            cur.close()
+        if conn: 
+            pool.putconn(conn)
 
 @app.route('/rules/<string:flag_name>', methods=['DELETE'])
 @require_auth
@@ -200,8 +206,10 @@ def delete_rule(flag_name):
         log.error(f"Erro ao deletar regra '{flag_name}': {e}")
         return jsonify({"error": "Erro interno do servidor", "details": str(e)}), 500
     finally:
-        if cur: cur.close()
-        if conn: pool.putconn(conn)
+        if cur: 
+            cur.close()
+        if conn: 
+            pool.putconn(conn)
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 8003))

@@ -126,6 +126,24 @@ jobs:
             -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
             -auto-approve
 
+      - name: Importar recursos K8s existentes
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            kubernetes_namespace.togglemaster togglemaster 2>/dev/null || true
+          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            kubernetes_config_map.evaluation togglemaster/evaluation-config 2>/dev/null || true
+          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            kubernetes_config_map.analytics togglemaster/analytics-config 2>/dev/null || true
+          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            kubernetes_secret.auth_service togglemaster/auth-service-secret 2>/dev/null || true
+          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            kubernetes_secret.flag_service togglemaster/flag-secret 2>/dev/null || true
+          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            kubernetes_secret.targeting_service togglemaster/targeting-secret 2>/dev/null || true
+          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            kubernetes_secret.evaluation_service togglemaster/evaluation-secret 2>/dev/null || true
+
       - name: "Fase 2 — Apply completo (RDS, ElastiCache, DynamoDB, SQS, ArgoCD)"
         working-directory: ${{ env.TF_DIR }}
         run: |

@@ -16,13 +16,13 @@ module "vpc" {
 module "eks" {
   source = "./modules/eks"
 
-  name_prefix       = local.name_prefix
-  cluster_version   = var.eks_cluster_version
-  vpc_id            = module.vpc.vpc_id
+  name_prefix        = local.name_prefix
+  cluster_version    = var.eks_cluster_version
+  vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
   public_subnet_ids  = module.vpc.public_subnet_ids
 
-  use_lab_role = var.use_lab_role
+  use_lab_role  = var.use_lab_role
   lab_role_name = var.lab_role_name
 
   cluster_role_arn = var.eks_cluster_role_arn
@@ -37,9 +37,9 @@ module "eks" {
 module "security_groups" {
   source = "./modules/security_groups"
 
-  name_prefix                     = local.name_prefix
-  vpc_id                          = module.vpc.vpc_id
-  eks_cluster_security_group_id   = module.eks.cluster_primary_security_group_id
+  name_prefix                   = local.name_prefix
+  vpc_id                        = module.vpc.vpc_id
+  eks_cluster_security_group_id = module.eks.cluster_primary_security_group_id
 }
 
 module "rds" {

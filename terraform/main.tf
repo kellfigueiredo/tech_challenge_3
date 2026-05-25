@@ -90,3 +90,102 @@ module "argocd" {
 
   depends_on = [module.eks]
 }
+
+# --- Kubernetes Secrets (senhas injetadas via pipeline, nunca commitadas) ---
+
+resource "kubernetes_namespace" "togglemaster" {
+  metadata {
+    name = "togglemaster"
+  }
+
+  depends_on = [module.eks]
+}
+
+resource "kubernetes_secret" "auth_service" {
+  metadata {
+    name      = "auth-service-secret"
+    namespace = kubernetes_namespace.togglemaster.metadata[0].name
+  }
+
+  data = {
+    DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds["auth"].db_endpoint}:5432/toggledb?sslmode=require"
+    MASTER_KEY   = var.master_key
+  }
+
+  depends_on = [module.eks, module.rds]
+}
+
+resource "kubernetes_secret" "flag_service" {
+  metadata {
+    name      = "flag-secret"
+    namespace = kubernetes_namespace.togglemaster.metadata[0].name
+  }
+
+  data = {
+    FLAG_DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds["flag"].db_endpoint}:5432/toggledb?sslmode=require"
+  }
+
+  depends_on = [module.eks, module.rds]
+}
+
+resource "kubernetes_secret" "targeting_service" {
+  metadata {
+    name      = "targeting-secret"
+    namespace = kubernetes_namespace.togglemaster.metadata[0].name
+  }
+
+  data = {
+    TARGETING_DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds["targeting"].db_endpoint}:5432/toggledb?sslmode=require"
+  }
+
+  depends_on = [module.eks, module.rds]
+}
+
+resource "kubernetes_secret" "evaluation_service" {
+  metadata {
+    name      = "evaluation-secret"
+    namespace = kubernetes_namespace.togglemaster.metadata[0].name
+  }
+
+  data = {
+    SERVICE_API_KEY = var.service_api_key
+  }
+
+  depends_on = [module.eks]
+}
+
+# --- Kubernetes ConfigMaps (endpoints dinâmicos de infraestrutura) ---
+
+resource "kubernetes_config_map" "evaluation" {
+  metadata {
+    name      = "evaluation-config"
+    namespace = kubernetes_namespace.togglemaster.metadata[0].name
+  }
+
+  data = {
+    PORT                   = "8004"
+    REDIS_URL              = "redis://${module.elasticache.primary_endpoint}:6379"
+    FLAG_SERVICE_URL       = "http://flag-service.togglemaster.svc.cluster.local:8002"
+    TARGETING_SERVICE_URL  = "http://targeting-service.togglemaster.svc.cluster.local:8003"
+    AWS_REGION             = var.aws_region
+    AWS_SQS_URL            = module.sqs.queue_url
+  }
+
+  depends_on = [module.eks, module.elasticache, module.sqs]
+}
+
+resource "kubernetes_config_map" "analytics" {
+  metadata {
+    name      = "analytics-config"
+    namespace = kubernetes_namespace.togglemaster.metadata[0].name
+  }
+
+  data = {
+    PORT               = "8005"
+    AWS_SQS_URL        = module.sqs.queue_url
+    AWS_DYNAMODB_TABLE = module.dynamodb.table_name
+    AWS_REGION         = var.aws_region
+  }
+
+  depends_on = [module.eks, module.sqs, module.dynamodb]
+}
